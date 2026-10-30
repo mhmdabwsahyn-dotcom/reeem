@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Together Forever</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#5c1239">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Together Forever">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Aref+Ruqaa:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--rose:#e8527a;--deep:#4a0e2b;--soft:#fff0f4}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Tajawal',sans-serif;color:#fff;min-height:100vh;
+background:linear-gradient(160deg,#2b0a1d,#5c1239 45%,#8a1f55);background-attachment:fixed}
+#hearts{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.h{position:absolute;bottom:-40px;animation:up linear forwards;opacity:.7}
+@keyframes up{to{transform:translateY(-110vh) rotate(25deg);opacity:0}}
+/* lock */
+#lock{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;
+gap:14px;padding:20px;text-align:center;background:linear-gradient(160deg,#2b0a1d,#6b1642)}
+#lock h1{font-family:'Aref Ruqaa',serif;font-size:2.2rem}
+#lock input{padding:12px 16px;border-radius:30px;border:2px solid var(--rose);background:rgba(255,255,255,.1);
+color:#fff;font-size:1.2rem;text-align:center;width:min(300px,85vw);outline:none}
+button{cursor:pointer;font-family:inherit}
+#lock button{padding:12px 34px;border:0;border-radius:30px;background:var(--rose);color:#fff;font-size:1.1rem}
+#err{color:#ffb3c6;min-height:24px}
+.shake{animation:sh .4s}
+@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+/* player */
+#player{position:sticky;top:0;z-index:20;transition:transform .35s;background:rgba(40,8,25,.85);backdrop-filter:blur(8px);padding:10px;
+display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;border-bottom:1px solid rgba(255,255,255,.15)}
+#player.hide{transform:translateY(-110%)}
+#player button{padding:7px 14px;border-radius:20px;border:1px solid var(--rose);background:transparent;color:#fff;font-size:.85rem}
+#player button.on{background:var(--rose)}
+#now{width:100%;text-align:center;font-size:.8rem;opacity:.8}
+main{position:relative;z-index:1;max-width:620px;margin:auto;padding:30px 16px 80px}
+.hero{text-align:center;padding:40px 0}
+.hero h1{font-family:'Aref Ruqaa',serif;font-size:2.6rem;line-height:1.5}
+.hero p{opacity:.85;margin-top:10px}
+.card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:22px;overflow:hidden;
+margin:36px 0;box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;transform:translateY(40px);transition:all .9s}
+.card.show{opacity:1;transform:none}
+.card img,.ph{width:100%;display:block;aspect-ratio:4/5;object-fit:cover}
+.ph{display:flex;align-items:center;justify-content:center;font-size:4rem;background:linear-gradient(135deg,#a02a60,#e8527a)}
+.card p{padding:20px;line-height:2;font-size:1.05rem;text-align:center}
+.end{text-align:center;font-family:'Aref Ruqaa',serif;font-size:2rem;margin-top:50px;line-height:1.8}
+.chat{margin-top:60px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:22px;padding:18px}
+.chat h2{font-family:'Aref Ruqaa',serif;text-align:center;font-size:1.7rem}
+#msgs{height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:12px 4px}
+.m{max-width:85%;padding:10px 14px;border-radius:18px;line-height:1.9;font-size:.98rem;white-space:pre-line}
+.m.bot{background:var(--rose);align-self:flex-start;border-bottom-right-radius:4px}
+.m.me{background:rgba(255,255,255,.18);align-self:flex-end;border-bottom-left-radius:4px}
+#chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+#chips button{padding:6px 12px;border-radius:16px;border:1px solid var(--rose);background:transparent;color:#fff;font-size:.8rem}
+.row{display:flex;gap:8px}
+.row input{flex:1;padding:11px 14px;border-radius:24px;border:1px solid var(--rose);background:rgba(255,255,255,.1);color:#fff;font-size:1rem;outline:none;font-family:inherit}
+.row button{padding:0 20px;border:0;border-radius:24px;background:var(--rose);color:#fff}
+#arena{position:relative;height:300px;overflow:hidden;border-radius:16px;background:rgba(0,0,0,.25);touch-action:manipulation;margin:10px 0}
+.b{position:absolute;font-size:46px;cursor:pointer;user-select:none;-webkit-user-select:none;animation:pop .15s}
+@keyframes pop{from{transform:scale(.3)}to{transform:scale(1)}}
+.stats{text-align:center;margin:8px 0}
+.sub{text-align:center;opacity:.85;font-size:.9rem;margin-top:6px}
+.gbtn{display:block;margin:8px auto;padding:10px 30px;border:0;border-radius:24px;background:var(--rose);color:#fff;font-size:1rem}
+.gbtn:disabled{opacity:.5}
+#tapBtn{display:block;margin:14px auto;width:150px;height:150px;border-radius:50%;border:0;font-size:4rem;
+background:radial-gradient(circle,#ff7a9c,#e8527a);box-shadow:0 8px 25px rgba(0,0,0,.4);touch-action:manipulation;user-select:none}
+#tapBtn:active{transform:scale(.92)}
+#msg1,#msg2{text-align:center;min-height:26px}
+</style>
+</head>
+<body>
+<div id="hearts"></div>
+
+<div id="lock">
+  <div style="font-size:3rem">🔒❤</div>
+  <h1>هدية خاصة جداً</h1>
+  <p>اكتبي تاريخ ميلادك عشان تفتحيها (يوم/شهر/سنة)</p>
+  <input id="pw" placeholder="مثال: 1/1/2000" inputmode="numeric" autocomplete="off">
+  <button onclick="unlock()">افتحي ✨</button>
+  <div id="err"></div>
+</div>
+
+<div id="app" style="display:none">
+  <div id="player"></div>
+  <main>
+    <section class="hero">
+      <div style="font-size:3rem">🎂❤</div>
+      <h1 id="title"></h1>
+      <p>اختاري أغنية من فوق، وكملي وانتي بتشوفي الجمال اللي تحت ده  💌</p>
+    </section>
+    <div id="gallery"></div>
+    <div class="end" id="end"></div>
+    <section class="chat">
+      <h2>💬 اسألي نفسك 😉</h2>
+      <div id="msgs"></div>
+      <div id="chips"></div>
+      <div class="row"><input id="q" placeholder="اكتبي سؤالك هنا..." autocomplete="off"><button id="send">إرسال</button></div>
+    </section>
+    <section class="chat">
+      <h2>🎈 فرقعي البلونة</h2>
+      <p class="sub">البلونة بتظهر وتختفي بسرعة، فرقعي أكبر عدد منها في ٣٠ ثانية!</p>
+      <div class="stats">النتيجة: <b id="s1">0</b> &nbsp;|&nbsp; الوقت: <b id="t1">30</b></div>
+      <div id="arena"></div>
+      <div id="msg1"></div>
+      <button class="gbtn" id="start1">ابدئي اللعب</button>
+    </section>
+    <section class="chat">
+      <h2>❤ سباق القلوب</h2>
+      <p class="sub">اضغطي على القلب بسرعة ورا بعض وإجمعي أكبر عدد قلوب في ١٠ ثواني!</p>
+      <div class="stats">القلوب: <b id="s2">0</b> &nbsp;|&nbsp; الوقت: <b id="t2">10</b> &nbsp;|&nbsp; أحسن نتيجة: <b id="best2">0</b></div>
+      <button id="tapBtn" disabled>❤</button>
+      <div id="msg2"></div>
+      <button class="gbtn" id="start2">ابدئي</button>
+    </section>
+  </main>
+</div>
+
+<audio id="audio" loop></audio>
+
+<script>
+/* ===== عدّل هنا ===== */
+const NAME = "ريم";                    // اسمها
+const SONGS = [                        // حط ملفات الأغاني في فولدر songs
+  {t:"تملي معاك – عمرو دياب",       f:"songs/1.mp3"},
+  {t:"النهارده عيد ميلاد – حمادة هلال", f:"songs/2.mp3"},
+  {t:"من دونك ما بعيش – أبو سنينه",  f:"songs/3.mp3"},
+  {t:"Perfect – Ed Sheeran",        f:"songs/4.mp3"},
+  {t:"لو تطلبي مني الدنيا – إليسا", f:"songs/5.mp3"}
+];
+const PHOTOS = [                       // حط الصور في فولدر photos واكتب كلامك تحت كل صورة
+  {src:"photos/1.jpg", text:"جمالك مش بس في شكلك… جمالك في روحك اللي بتنوّر أي مكان تدخليه. كل مرة بشوفك بقول الحمد لله إنك في حياتي. 🌹"},
+  {src:"photos/2.jpg", text:"طيبتك بتبان في أبسط تفاصيلك، في كلامك وضحكتك وحنيتك على اللي حواليكي. عمري ما قابلت قلب زي قلبك. 💖"},
+  {src:"photos/3.jpg", text:"احترامك ليا وللناس هو اللي خلاني أحترمك أكتر كل يوم. معاكي حاسس بالأمان والطمأنينة. 🤍"},
+  {src:"photos/4.jpg", text:"ضحكتك هي أحلى حاجة بشوفها في يومي، ولو الدنيا كلها وحشة، بتصلحها بابتسامة منك. 😊"},
+  {src:"photos/5.jpg", text:"بحبك بكل اللي فيا، ومش بس النهاردة في عيد ميلادك، لكن كل يوم وكل لحظة. 💍"},
+  {src:"photos/6.jpg", text:"كل سنة وانتي طيبة يا أجمل هدية ربنا إدّاني إياها. عقبال ما نحتفل مع بعض كل السنين الجاية. 🎂"}
+];
+const END_TEXT = "كل سنة وانتي حبيبتي وعمري ❤";
+const BIRTH = {d:5, m:11, y:2005};     // الباسورد = تاريخ الميلاد
+/* ==================== */
+
+const $ = id => document.getElementById(id);
+const audio = $('audio');
+
+function ok(v){
+  const n = (v||'').replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)); // يقبل الأرقام العربي
+  const p = n.split(/\D+/).filter(Boolean).map(Number);
+  if(p.length===3) return p[0]===BIRTH.d && p[1]===BIRTH.m && p[2]===BIRTH.y;
+  const s = n.replace(/\D/g,'');
+  return s.length===8 && +s.slice(0,2)===BIRTH.d && +s.slice(2,4)===BIRTH.m && +s.slice(4)===BIRTH.y;
+}
+function unlock(){
+  if(ok($('pw').value)){
+    $('lock').style.display='none'; $('app').style.display='block';
+    build(); play(0);
+  } else {
+    $('err').textContent='مش دي يا قمر، جربي تاني 💕';
+    $('pw').classList.add('shake'); setTimeout(()=>$('pw').classList.remove('shake'),400);
+  }
+}
+$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock()});
+
+let curFile='';
+audio.addEventListener('error',()=>{
+  $('now').textContent='الأغنية دي مش بتشتغل دلوقتي، اختاري أي أغنية تانية من فوق 🎶';
+});
+function play(i){
+  curFile=SONGS[i].f; audio.src = SONGS[i].f; audio.load(); audio.play().catch(()=>{});
+  document.querySelectorAll('#player button').forEach((b,j)=>b.classList.toggle('on',i===j));
+  $('now').textContent = '🎵 ' + SONGS[i].t;
+}
+function build(){
+  $('title').textContent = 'كل سنة وانتي طيبة يا ' + NAME;
+  $('end').textContent = END_TEXT;
+  $('player').innerHTML = SONGS.map((s,i)=>`<button onclick="play(${i})">${i+1}. ${s.t}</button>`).join('') +
+    '<div id="now"></div>';
+  $('gallery').innerHTML = PHOTOS.map((p,i)=>`
+    <div class="card"><img src="${p.src}" alt="" onerror="this.outerHTML='<div class=ph>❤</div>'"><p>${p.text}</p></div>`).join('');
+  const io = new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')}),{threshold:.2});
+  document.querySelectorAll('.card').forEach(c=>io.observe(c));
+}
+let lastY=0;
+addEventListener('scroll',()=>{
+  const p=$('player'), y=scrollY; if(!p) return;
+  if(y>80 && y>lastY) p.classList.add('hide'); else if(y<lastY || y<=80) p.classList.remove('hide');
+  lastY=y;
+},{passive:true});
+
+/* ===== الشات ===== */
+const FAMILY = {
+  father:"حسام شاهين", mother:"سماسم حسن محمود",
+  sisters:["رانيا","بسنت","مرام","سيلا"],
+  college:"تربية رياضية", love:"بس بقي عشان بتكسف بس لو لازم يعني 🤭 ف هو حد قريب مني جدا وبيحبني من زمان وانا بصراحه بحبه برضو "
+};
+const ABOUT = `أنا ريم، وبحاول دايماً أكون بسيطة وصادقة مع نفسي ومع اللي حواليا 🌸
+
+قلبي طيب وبيحب الخير للناس، وبحب أطمّن اللي حواليا وأكون سبب في ابتسامتهم. اتربيت على الأدب والاحترام، ودايماً بقول الكلمة الحلوة، لأن الكلمة الطيبة بتداوي القلوب.
+
+عندي حنية كبيرة، وبقدّر الناس وبحترم الكل، وده من أجمل حاجات في شخصيتي. وعلمي وأخلاقي هما اللي بيرفعوا قدري بين الناس.
+
+وفي أيام كتير بتعب وبحس إن الدنيا تقيلة، بس بفتكر إني قوية، وإن ربنا بيحبني وبيدبّر لي الخير. أنا أستاهل كل حاجة حلوة، وكفاية إني ريم، قلب نقي ووش منوّر ✨💖`;
+const DREAM = `نفسي أعيش في أمان وعيشة كويسة، ويكون جوزي بيحبني ويكون سندي وأنا أكون سنده، ونعيش في بيت هادي ومطمئن مليان حب وحنية 🏡
+
+وبصراحة أنا شفت حد كده الشخص الوحيد في الدنيا المناسب لده، وهو الوحيد اللي بحس معاه بكل الدفء والحنية دي.
+
+ولكن عنده مشكلة واحدة: إنه طموووح جداً وطموحه ملوش حدود، ومش هيرتاح ولا يهدالو بال إلا لما يكون عنده بدل الفيلا قصر، وبدل العربية أسطول عربيات 😄
+
+وهو بصراحة عايز يوصل لكل ده عشان خاطري أنا، وأنا مقدرة ده وحاسة بيه، عشان كده حبه زاد في قلبي ❤️🥹🌹 وهفضل أحبه طول عمري`;
+const FIVE = 'في بيت رفيق العمر اللي الناس كلها هتحسدني عليه وغيرانين من كوننا مع بعض ، ويكون معانا بيبي كمان ، ويكون شبه ابوه ، وأبقى انا كمان علي اسمه وبتاعته هو وبس  صاحب أكبر شركات في مصر ابن الايه ده 🤍🩵🥹🌹';
+function norm(s){
+  return s.replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي')
+    .replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/[؟?!.,،]/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
+}
+function age(){
+  const t=new Date(); let a=t.getFullYear()-BIRTH.y;
+  const had = t.getMonth()+1>BIRTH.m || (t.getMonth()+1===BIRTH.m && t.getDate()>=BIRTH.d);
+  if(!had) a--; return {a, today:(t.getMonth()+1===BIRTH.m && t.getDate()===BIRTH.d)};
+}
+const has=(q,arr)=>arr.some(w=>q.includes(w));
+function reply(raw){
+  const q=norm(raw);
+  if(has(q,['عن نفسك','عرفينا بنفسك','احكيلي عنك','احكي عن نفسك','مين انتي','انتي مين','كلميني']))
+    return ABOUT;
+  if(has(q,['بعد 5','بعد خمس','شايفه نفسك','فين بعد','بعد ٥','المستقبل'])) return FIVE;
+  if(has(q,['نفسك في اي','حلمك','احلامك','امنيتك','نفسك تعيشي','حلم حياتك','نفسك تبقي','بتحلمي'])) return DREAM;
+  if(!q.includes('مين') && has(q,['كام سنه','كم سنه','عمرك','سنك','عندك كام','كم عمرك','عندك كم'])){
+    const r=age(); return r.today ? `النهاردة عيد ميلادي وبقى عندي ${r.a} سنة 🎂💕` : `عندي ${r.a} سنة 🌷`;
+  }
+  if(q.includes('مين') && has(q,['تحب','بتحب','حبيب','قلبك','عمرك']) || has(q,['بتحبي مين','تحبي مين','حبيبك','حبك الاول','اول حب']))
+    return `${FAMILY.love} ❤\nلأنه حبي الأول وأماني الوحيد، وبتطمن وأنا معاه، ومستقبلنا مع بعض بإذن الله 💍`;
+  if(has(q,['كليه','كلية','بتدرسي','بتذاكري','دراستك','جامعه','جامعة','دراسه','بتتعلمي']))
+    return `أنا في كلية ${FAMILY.college} 🏃‍♀️💪`;
+  if(has(q,['ابوك','بابا','والدك','ابوكي','اسم ابوك']) && !has(q,['امك','ماما','والدتك']))
+    return `اسم بابا: ${FAMILY.father} 🤍`;
+  if(has(q,['امك','ماما','والدتك','امي','اسم امك']) && !has(q,['ابوك','بابا','والدك']))
+    return `اسم ماما: ${FAMILY.mother} 🌹`;
+  if(has(q,['اهلك','والديك','ابواك','ابوك وامك','بابا وماما']))
+    return `بابا: ${FAMILY.father}\nوماما: ${FAMILY.mother} 💞`;
+  if(has(q,['اخواتك','اخوات','اخوتك','اخوكي','اختك','اخواتي']))
+    return `عندي ${FAMILY.sisters.length} أخوات بنات: ${FAMILY.sisters.join('، ')} 🥰`;
+  if(has(q,['اسمك','اسمك ايه','انتي اسمك']))
+    return `اسمي ${NAME} 🌸`;
+  if(has(q,['ميلادك','عيد ميلادك','تاريخ ميلادك','اتولدتي','مواليد']))
+    return `اتولدت يوم ${BIRTH.d} نوفمبر ${BIRTH.y} 🎂`;
+  if(has(q,['ازيك','اخبارك','عامله ايه','عامله اي','ازاي']) || /^(هاي|هلا|اهلا|السلام عليكم|مرحبا)/.test(q))
+    return 'أهلاً بيكي 🌷 اسألي أي سؤال عني وهجاوب بصراحة.';
+  return 'سؤال حلو 😊 بس مش عارفة أجاوبه دلوقتي. جربي تسألي: عندك كام سنة؟ بتحبي مين؟ بتدرسي إيه؟ أو كلميني عن نفسك.';
+}
+function addMsg(t,who){
+  const d=document.createElement('div'); d.className='m '+who; d.textContent=t;
+  $('msgs').appendChild(d); $('msgs').scrollTop=$('msgs').scrollHeight;
+}
+function ask(t){
+  t=(t||'').trim(); if(!t) return;
+  addMsg(t,'me'); $('q').value='';
+  setTimeout(()=>addMsg(reply(t),'bot'),500);
+}
+(function initChat(){
+  addMsg('أنا ريم ومستعدة لأي سؤال عني، وهحاول أجاوب بصراحة 💕','bot');
+  const qs=['عندك كام سنة؟','بتحبي مين؟','بتدرسي إيه؟','اسم باباكي؟','اسم ماما؟','إخواتك؟','نفسك في إيه؟','شايفة نفسك فين بعد 5 سنين؟','كلميني عن نفسك'];
+  $('chips').innerHTML=qs.map(s=>`<button type="button">${s}</button>`).join('');
+  $('chips').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>ask(b.textContent)));
+  $('send').addEventListener('click',()=>ask($('q').value));
+  $('q').addEventListener('keydown',e=>{if(e.key==='Enter')ask($('q').value)});
+})();
+
+/* ===== لعبة البلونة ===== */
+(function(){
+  const arena=$('arena'); let score=0,left=30,spawn,clock,t0;
+  function pop(el){
+    if(el.dataset.d) return; el.dataset.d=1; score++; $('s1').textContent=score;
+    el.textContent='💥'; setTimeout(()=>el.remove(),180);
+  }
+  function make(){
+    const el=document.createElement('span'); el.className='b'; el.textContent=['🎈','🎈','❤️','💗'][Math.random()*4|0];
+    el.style.left=Math.random()*(arena.clientWidth-56)+'px'; el.style.top=Math.random()*(arena.clientHeight-56)+'px';
+    el.addEventListener('pointerdown',e=>{e.preventDefault();pop(el)});
+    arena.appendChild(el);
+    const life=Math.max(550,1100-(Date.now()-t0)/40);
+    setTimeout(()=>el.remove(),life);
+  }
+  function end(){
+    clearInterval(spawn); clearInterval(clock); arena.innerHTML='';
+    $('msg1').textContent = score>=25 ? `🎉 خلصت! فرقعتي ${score} بلونة، إيدك سريعة أوي!` : `خلصت! فرقعتي ${score} بلونة 💕 جربي تاني وهتكسري الرقم!`;
+    $('start1').disabled=false; $('start1').textContent='العبي تاني';
+  }
+  $('start1').addEventListener('click',()=>{
+    score=0; left=30; t0=Date.now(); $('s1').textContent=0; $('t1').textContent=30; $('msg1').textContent='';
+    $('start1').disabled=true; arena.innerHTML='';
+    spawn=setInterval(make,650);
+    clock=setInterval(()=>{left--; $('t1').textContent=left; if(left<=0) end();},1000);
+  });
+})();
+
+/* ===== سباق القلوب ===== */
+(function(){
+  let n=0,left=10,clock,on=false,best=0;
+  try{best=+localStorage.getItem('bestHearts')||0}catch(e){}
+  $('best2').textContent=best;
+  function end(){
+    clearInterval(clock); on=false; $('tapBtn').disabled=true; $('start2').disabled=false; $('start2').textContent='العبي تاني';
+    let m=`جمعتي ${n} قلب ❤`;
+    if(n>best){best=n; $('best2').textContent=best; try{localStorage.setItem('bestHearts',best)}catch(e){} m+=' 🏆 رقم قياسي جديد!';}
+    $('msg2').textContent=m;
+  }
+  $('tapBtn').addEventListener('pointerdown',e=>{e.preventDefault(); if(on){n++; $('s2').textContent=n;}});
+  $('start2').addEventListener('click',()=>{
+    n=0; left=10; on=true; $('s2').textContent=0; $('t2').textContent=10; $('msg2').textContent='';
+    $('tapBtn').disabled=false; $('start2').disabled=true;
+    clock=setInterval(()=>{left--; $('t2').textContent=left; if(left<=0) end();},1000);
+  });
+})();
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+setInterval(()=>{
+  const h=document.createElement('span'); h.className='h';
+  h.textContent=['❤','💕','💖','🌹'][Math.random()*4|0];
+  h.style.left=Math.random()*100+'vw'; h.style.fontSize=(14+Math.random()*22)+'px';
+  h.style.animationDuration=(6+Math.random()*6)+'s';
+  $('hearts').appendChild(h); setTimeout(()=>h.remove(),12000);
+},500);
+</script>
+</body>
+</html>
